@@ -1,5 +1,4 @@
 all:
-	dune fmt
 	dune build
 
 test-codegen:
