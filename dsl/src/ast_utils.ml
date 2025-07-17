@@ -130,7 +130,8 @@ and ppf_qual ppf =
         pf ppf "(qimply %a %a)" ppf_qual q1 ppf_qual q2
     | QQuant (quant, (x, s, e), q) ->
         pf ppf "(%a%a<=%s<%a. %a)" ppf_quant quant ppf_expr s x ppf_expr e
-          ppf_qual q )
+          ppf_qual q 
+    | QDelay v -> pf ppf "(Delay var name: %a)" ppf_expr v )
 
 and ppf_expr ppf : expr -> unit =
   Fmt.(
@@ -211,15 +212,16 @@ let show_expr (e : expr) = Fmt.str "%a" ppf_expr e
 let show_exprs (es : expr list) =
   Fmt.str "%a" (Fmt.list ~sep:(Fmt.any " ") ppf_expr) es
 
-let show_const (c : const) = Fmt.str "%a" ppf_const c
+let show_const (c : const) = Fmt.str "hi constraint!%a" ppf_const c
 
 module SS = StringSet
 
-let unions ss = List.fold_left ~f:SS.union ~init:SS.empty ss
+(* let unions ss = List.fold_left ~f:Set.union ~init:SS.empty ss *)
 
-let except s x = SS.diff s (SS.singleton x)
+let unions = SS.union_list
+let except s x = Set.diff s (SS.singleton x)
 
-let excepts s xs = SS.diff s (SS.of_list xs)
+let excepts s xs = Set.diff s (SS.of_list xs)
 
 let count = ref 0
 
@@ -234,7 +236,7 @@ let rec vars_typ : typ -> SS.t = function
   | TRef (_, q) ->
       except (vars_qual q) nu_str
   | TFun (x, t1, t2) ->
-      SS.union (vars_typ t1) (except (vars_typ t2) x)
+      Set.union (vars_typ t1) (except (vars_typ t2) x)
   | TTuple ts ->
       unions (List.map ts ~f:vars_typ)
   | TArr t ->
@@ -256,13 +258,13 @@ and vars_expr : expr -> SS.t = function
   | CPLen | CPrime ->
       SS.empty
   | Ascribe (e, t) ->
-      SS.union (vars_expr e) (vars_typ t)
+      Set.union (vars_expr e) (vars_typ t)
   | AscribeUnsafe (e, t) ->
-      SS.union (vars_expr e) (vars_typ t)
+      Set.union (vars_expr e) (vars_typ t)
   | LetIn (x, e1, e2) ->
-      SS.union (vars_expr e1) (except (vars_expr e2) x)
+      Set.union (vars_expr e1) (except (vars_expr e2) x)
   | Assert (e1, e2) ->
-      SS.union (vars_expr e1) (vars_expr e2)
+      Set.union (vars_expr e1) (vars_expr e2)
   | EQual q ->
       vars_qual q
   | Var x ->
@@ -272,15 +274,15 @@ and vars_expr : expr -> SS.t = function
   | LamA (x, t, e) ->
       except (vars_expr e) x
   | App (e1, e2) ->
-      SS.union (vars_expr e1) (vars_expr e2)
+      Set.union (vars_expr e1) (vars_expr e2)
   | Binop (_, _, e1, e2) ->
-      SS.union (vars_expr e1) (vars_expr e2)
+      Set.union (vars_expr e1) (vars_expr e2)
   | Not e ->
       vars_expr e
   | Boolop (_, e1, e2) ->
-      SS.union (vars_expr e1) (vars_expr e2)
+      Set.union (vars_expr e1) (vars_expr e2)
   | Comp (_, e1, e2) ->
-      SS.union (vars_expr e1) (vars_expr e2)
+      Set.union (vars_expr e1) (vars_expr e2)
   | Call (_, es) ->
       unions (List.map ~f:vars_expr es)
   | ArrayOp (_, es) ->
@@ -292,11 +294,11 @@ and vars_expr : expr -> SS.t = function
   | TGet (e, i) ->
       vars_expr e
   | DMake (es, q) ->
-      SS.union (unions (List.map es ~f:vars_expr)) (vars_qual q)
+      Set.union (unions (List.map es ~f:vars_expr)) (vars_qual q)
   | DMatch (e1, xs, e2) ->
-      SS.union (vars_expr e1) (excepts (vars_expr e2) xs)
+      Set.union (vars_expr e1) (excepts (vars_expr e2) xs)
   | Map (e1, e2) ->
-      SS.union (vars_expr e1) (vars_expr e2)
+      Set.union (vars_expr e1) (vars_expr e2)
   | Foldl {f; acc; xs} ->
       unions (List.map ~f:vars_expr [f; acc; xs])
   | Iter {s; e; body; init; inv} ->
@@ -307,7 +309,7 @@ and vars_expr : expr -> SS.t = function
   | Fn (_, es) ->
       unions (List.map ~f:vars_expr es)
   | RSum (s, e, f) ->
-      SS.union (unions (List.map ~f:vars_expr [s; e])) (vars_typ f)
+      Set.union (unions (List.map ~f:vars_expr [s; e])) (vars_typ f)
   | Push e ->
       vars_expr e
   | Pull e ->

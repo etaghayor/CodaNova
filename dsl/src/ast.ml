@@ -32,6 +32,7 @@ and qual =
   | QOr of qual * qual
   | QImply of qual * qual
   | QQuant of quant * (string * expr * expr) * qual
+  | QDelay of expr (* A hole of delayed refinement for wildcards*)
 
 and quant = Forall | Exists
 

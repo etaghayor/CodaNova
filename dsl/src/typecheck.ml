@@ -123,8 +123,9 @@ let get_alpha = S.(get >>| fun st -> st.alpha)
 let i = ref 0
 
 let add_cons cons =
+  print_endline "are we here?";
   print_endline
-    (spf "[add_cons] (%d) New constraint \n%s\n" !i (show_cons cons)) ;
+    (spf "[add_cons] (%d) New constraint \n%s\n BYE!" !i (show_cons cons)) ;
   if is_non_trivial cons then ()
     (* print_endline (spf "[add_cons] (%d) New constraint \n%s\n" !i (show_cons cons)) *)
   else () ;
@@ -184,7 +185,7 @@ let rec synthesize (e : expr) : typ S.t =
       print_endline (spf "[synthesize] Synthesizing type for %s" (show_expr e)) ;
       let f = function
         | NonDet ->
-            return tf
+            return @@ refine tf @@ QDelay (Var (Fresh.gen "x_"))
         | Assert (e1, e2) ->
             let%bind t1 = synthesize e1 and t2 = synthesize e2 in
             (* check t1 & t2 have the same skeleton *)
@@ -484,6 +485,8 @@ let rec synthesize (e : expr) : typ S.t =
       >>| fun t ->
       print_endline
         (spf "[synthesize] type for %s >>> %s\n" (show_expr e) (show_typ t)) ;
+      
+      
       t ) )
 
 and synthesize_app (t : typ) (es : expr list) : typ S.t =
@@ -520,7 +523,7 @@ and check (e : expr) (t : typ) : unit S.t =
                   subst_qual' (tget nu i) e q )
             in
             check_cons (qimply QTrue q')
-        | ArrayOp (Cons, [e1; e2]), TRef (TArr te, q) ->
+        | ArrayOp (Cons, [e1; e2]), TRef (TArr te, q) -> (*TODO: work with q*)
             let%bind () = check e1 te and () = check e2 (tarr te) in
             subtype (refine_expr (tarr te) (nu =. e)) nt
         | Lam (x, body), TFun (y, t1, t2) ->
@@ -617,6 +620,8 @@ let run_synthesis ?(gamma = []) e =
       let t, {cs; _} =
         run {delta= []; gamma; alpha= []; cs= []} (synthesize e)
       in
+      print_endline "FINAL CONS!\n";
+      pc cs ~filter:true;
       (t, cs) ) )
 
 let run_checking ?(gamma = []) e t =

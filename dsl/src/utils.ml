@@ -14,3 +14,12 @@ let ( >> ) f g x = x |> f |> g
 
 let to_numbered ?(init = 0) (l : 'a list) : (int * 'a) list =
   List.init (List.length l) ~f:(fun i -> (i + init, List.nth_exn l i))
+
+module Fresh = struct
+  let counter = ref 0
+
+  let gen prefix =
+    let id = !counter in
+    incr counter;
+    prefix ^ string_of_int id
+end
