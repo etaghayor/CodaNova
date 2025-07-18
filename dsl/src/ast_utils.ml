@@ -333,89 +333,95 @@ let rec subst_typ (x : string) (e : expr) (t : typ) : typ =
 
 and subst_qual (x : string) (e : expr) (q : qual) : qual =
   match q with
-  | QTrue ->
-      q
-  | QNot q' ->
-      QNot (subst_qual x e q')
-  | QAnd (q1, q2) ->
-      QAnd (subst_qual x e q1, subst_qual x e q2)
-  | QOr (q1, q2) ->
-      QOr (subst_qual x e q1, subst_qual x e q2)
-  | QImply (q1, q2) ->
-      QImply (subst_qual x e q1, subst_qual x e q2)
-  | QExpr e' ->
-      QExpr (subst_expr x e e')
-  | QQuant (quant, (y, es, ee), q') ->
-      QQuant
-        ( quant
-        , (y, subst_expr x e es, subst_expr x e ee)
-        , if String.(x = y) then q' else subst_qual x e q' )
+    | QTrue ->
+        q
+    | QNot q' ->
+        QNot (subst_qual x e q')
+    | QAnd (q1, q2) ->
+        QAnd (subst_qual x e q1, subst_qual x e q2)
+    | QOr (q1, q2) ->
+        QOr (subst_qual x e q1, subst_qual x e q2)
+    | QImply (q1, q2) ->
+        QImply (subst_qual x e q1, subst_qual x e q2)
+    | QExpr e' ->
+        QExpr (subst_expr x e e')
+    | QQuant (quant, (y, es, ee), q') ->
+        QQuant
+            ( quant
+            , (y, subst_expr x e es, subst_expr x e ee)
+            , if String.(x = y) then q' else subst_qual x e q' )
+    | QDelay e' -> q (*TODO*)
 
 and subst_expr (x : string) (ef : expr) (e : expr) : expr =
   let f = subst_expr x ef in
   match e with
-  | Const _ ->
-      e
-  | CPrime ->
-      e
-  | CPLen ->
-      e
-  | Var y ->
-      if String.(x = y) then ef else e
-  | EQual q ->
-      EQual (subst_qual x ef q)
-  | LamA (y, t, body) ->
-      if String.(x = y) then e else LamA (y, subst_typ x ef t, f body)
-  | App (e1, e2) ->
-      App (f e1, f e2)
-  | Ascribe (e, t) ->
-      Ascribe (f e, subst_typ x ef t)
-  | AscribeUnsafe (e, t) ->
-      AscribeUnsafe (f e, subst_typ x ef t)
-  | Not e' ->
-      Not (f e')
-  | Binop (t, op, e1, e2) ->
-      Binop (t, op, f e1, f e2)
-  | Boolop (op, e1, e2) ->
-      Boolop (op, f e1, f e2)
-  | Comp (op, e1, e2) ->
-      Comp (op, f e1, f e2)
-  | Call (c, es) ->
-      Call (c, List.map ~f es)
-  | ArrayOp (op, es) ->
-      ArrayOp (op, List.map ~f es)
-  | TMake es ->
-      TMake (List.map ~f es)
-  | TGet (e, n) ->
-      TGet (f e, n)
-  | Fn (fn, es) ->
-      Fn (fn, List.map ~f es)
-  | Iter {s; e; body; init; inv} ->
+    | NonDet -> e
+    | Const _ ->
+        e
+    | CPrime ->
+        e
+    | CPLen ->
+        e
+    | Var y ->
+        if String.(x = y) then ef else e
+    | EQual q ->
+        EQual (subst_qual x ef q)
+    | LetIn (y, e1, e2) ->  
+        if String.(x = y) then e else
+            LetIn (y, f e1, f e2)
+    | LamA (y, t, body) ->
+        if String.(x = y) then e else LamA (y, subst_typ x ef t, f body)
+    | App (e1, e2) ->
+        App (f e1, f e2)
+    | Assert (e1,e2) -> Assert (subst_expr x ef e1, subst_expr x ef e2) (*Added by Ellenor*)
+    | Ascribe (e, t) ->
+        Ascribe (f e, subst_typ x ef t)
+    | AscribeUnsafe (e, t) ->
+        AscribeUnsafe (f e, subst_typ x ef t)
+    | Not e' ->
+        Not (f e')
+    | Binop (t, op, e1, e2) ->
+        Binop (t, op, f e1, f e2)
+    | Boolop (op, e1, e2) ->
+        Boolop (op, f e1, f e2)
+    | Comp (op, e1, e2) ->
+        Comp (op, f e1, f e2)
+    | Call (c, es) ->
+        Call (c, List.map ~f es)
+    | ArrayOp (op, es) ->
+        ArrayOp (op, List.map ~f es)
+    | TMake es ->
+        TMake (List.map ~f es)
+    | TGet (e, n) ->
+        TGet (f e, n)
+    | Fn (fn, es) ->
+        Fn (fn, List.map ~f es)
+    | Iter {s; e; body; init; inv} ->
       Iter
         { s= f s
         ; e= f e
         ; body= f body
         ; init= f init
         ; inv= (fun ei -> subst_typ x ef (inv ei)) }
-  | Sum {s; e= e'; body} ->
-      Sum {s= f s; e= f e'; body= f body}
-  | RSum (s, e, t) ->
-      RSum (f s, f e, subst_typ x ef t)
-  | DMake (es, q) ->
-      DMake (List.map ~f es, subst_qual x ef q)
-  | DMatch (e1, ys, e2) ->
-      if List.exists ~f:(String.( = ) x) ys then DMatch (f e1, ys, e2)
-      else DMatch (f e1, ys, f e2)
-  | Map (e1, e2) ->
+    | Sum {s; e= e'; body} ->
+        Sum {s= f s; e= f e'; body= f body}
+    | RSum (s, e, t) ->
+        RSum (f s, f e, subst_typ x ef t)
+    | DMake (es, q) ->
+        DMake (List.map ~f es, subst_qual x ef q)
+    | DMatch (e1, ys, e2) ->
+        if List.exists ~f:(String.( = ) x) ys then DMatch (f e1, ys, e2)
+        else DMatch (f e1, ys, f e2)
+    | Map (e1, e2) ->
       todos "subst_expr: Map"
-  | Foldl {f; acc; xs} ->
-      todos "subst_expr: Foldl"
-  | Push e ->
-      Push (f e)
-  | Pull e ->
-      Pull (f e)
-  | _ ->
-      todos (Format.sprintf "TODO: subst_expr: %s" (show_expr e))
+    | Foldl {f; acc; xs} ->
+        todos "subst_expr: Foldl"
+    | Push e ->
+        Push (f e)
+    | Pull e ->
+        Pull (f e)
+    | _ ->
+        todos (Format.sprintf "TODO: subst_expr: %s" (show_expr e))
 
 let rec subst_typ' (e : expr) (e' : expr) (t : typ) : typ =
   let f = subst_typ' e e' in

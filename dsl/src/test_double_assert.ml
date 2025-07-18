@@ -43,7 +43,7 @@ let () =
   let _ = Typecheck.(S.run {cs= []; gamma=[];alpha= []; delta= []}
               (check expr2 (refine_expr tf (eq nu f1)))) in () *)
 
-  let t, _ = Typecheck.(S.run {cs= []; gamma= []; alpha= []; delta= []} (synthesize expr2)) in
+  let t, _ = Typecheck.(S.run {cs= []; gamma= []; alpha= []; delta= []} (synthesize expr)) in
 
   let t' = normalize t in
 

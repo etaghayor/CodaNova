@@ -189,9 +189,13 @@ let rec synthesize (e : expr) : typ S.t =
         | Assert (e1, e2) ->
             let%bind t1 = synthesize e1 and t2 = synthesize e2 in
             (* check t1 & t2 have the same skeleton *)
+            let (_,q1) = get_tq t1 in
+            let (_,q2) = get_tq t2 in
             subtype (skeleton t1) (skeleton t2)
             >> subtype (skeleton t2) (skeleton t1)
-            >> return (tunit_dep (QExpr (e1 =. e2)))
+            >> let q = QExpr (e1 =. e2) in
+              (check_cons (QImply (q1, q)) >> check_cons (QImply (q2, q)))
+            >> return (tunit_dep q)
         | CPrime ->
             return (refine_expr tint (nu =. CPrime))
         | CPLen ->
@@ -217,8 +221,10 @@ let rec synthesize (e : expr) : typ S.t =
                 "[synthesize] cannot synthesize type for ignored variable _"
             else
               let%bind g = get_gamma in
+              print_endline ("Gamma:\n" ^show_gamma g);
               match List.Assoc.find g x ~equal:String.equal with
               | Some t -> (
+                print_endline ("Found var: " ^ x ^"\n");
                 match t with
                 | TFun _ ->
                     return t
@@ -257,10 +263,15 @@ let rec synthesize (e : expr) : typ S.t =
             check e t >>| fun () -> t
         | AscribeUnsafe (_, t) ->
             return t
+        | LetIn (x, e1, e2) -> 
+            let%bind t1 = synthesize e1 in
+            let%bind t2 = with_binding (x, t1) (synthesize e2) in
+            check (subst_expr x e1 e2) t2 >> return (subst_typ x e1 t2)
         | LamA (x, t1, e) ->
             let%bind t2 = with_binding (x, t1) (synthesize e) in
             return (tfun x t1 t2)
         | App (e1, e2) -> (
+            print_endline "[synthesize] Time to see application\n";
             match%bind synthesize e1 with
             | TFun (x, tx, tr) ->
                 check e2 tx >> return (subst_typ x e2 tr)
@@ -515,6 +526,10 @@ and check (e : expr) (t : typ) : unit S.t =
               subtype (attach (nu ==. cnil) (skeleton t)) nt
           | _ ->
               failwith (spf "Expect CNil <= %s to be an array" (show_typ t)) )
+        | NonDet, nt -> 
+          print_endline " Tell me you see me\n";
+           let%bind t1 = synthesize e in
+           subtype nt t1
         | TMake es, TRef (TTuple ts, q) ->
             iterM (List.zip_exn es ts) ~f:(uncurry check)
             >>= fun () ->
