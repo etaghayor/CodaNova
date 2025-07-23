@@ -296,7 +296,7 @@ let rec rev_array (l : expr) : expr =
 (* parrallel substitution *)
 let rec beta_reduction (s : subst) (e : expr) : expr =
   match e with
-  | NonDet ->
+  | NonDet _ ->
       e
   | CPrime ->
       e
@@ -379,7 +379,7 @@ let rec reify_expr (prefix : string) (g : gamma) (b : beta) (d : delta)
     gamma * beta * ralpha * expr =
   (* print_endline ("Reify: " ^ show_expr e) ; *)
   match e with
-  | NonDet ->
+  | NonDet _ ->
       (* generate a fresh var for it *)
       let x = fresh_var prefix () in
       ((x, Var x) :: g, x :: b, a, Var x)
@@ -1091,7 +1091,7 @@ let rec get_length_from_qual (q : qual) config : int option =
 let rec type_refine (config : configuration) (t : typ) : expr =
   match t with
   | TBase _ ->
-      NonDet
+      NonDet (Fresh.gen "n_")
   | TTuple ts ->
       TMake (List.map (type_refine config) ts)
   | TRef (tarr, q) -> (

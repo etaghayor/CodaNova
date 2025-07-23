@@ -1,7 +1,6 @@
 (env
  (dev
-  (flags
-   (:standard -warn-error -A))))
+  (flags (:standard -w -A))))
 (include_subdirs unqualified)
 
 (library
@@ -40,9 +39,9 @@
  (preprocess
   (pps ppx_jane ppx_deriving.show ppx_deriving.eq)))
 
-(executable
- (name test_double_assert)
- (modules test_double_assert)
- (libraries core lib typecheck)
- (preprocess
-  (pps ppx_jane ppx_let ppx_deriving.show ppx_deriving.eq)))
+; (executable
+;  (name test_double_assert)
+;  (modules test_double_assert)
+;  (libraries core lib typecheck)
+;  (preprocess
+;   (pps ppx_jane ppx_let ppx_deriving.show ppx_deriving.eq)))

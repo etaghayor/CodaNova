@@ -1,11 +1,11 @@
 all:
 	dune build
 
-test-codegen:
-	dune exec ./test/test_codegen.exe
-
 test-double-assert:
-	dune exec _build/default/src/test_double_assert.exe
+	dune exec _build/default/tests/test_double_assert.exe
+
+test-simple:
+	dune exec _build/default/tests/test_simple.exe
 
 Makefile:
 	@echo make $@
