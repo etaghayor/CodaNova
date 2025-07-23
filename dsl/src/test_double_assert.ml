@@ -12,7 +12,7 @@ let () =
   (let _ = assert (a=2) in a) *)
   (*TODO: Change "_"*)
   let expr = 
-    LetIn ("a", NonDet, 
+    LetIn ("a", star, 
       App (
         LamA ("x", tf, 
           LetIn("b", Assert (Var "a", f1), Var "a")
@@ -35,7 +35,7 @@ let () =
       (LamA ("a", tf, 
               App (LamA("x",tf, e1), e2)
             ) 
-        ), NonDet
+        ), star
       )
     
   in
@@ -43,10 +43,14 @@ let () =
   let _ = Typecheck.(S.run {cs= []; gamma=[];alpha= []; delta= []}
               (check expr2 (refine_expr tf (eq nu f1)))) in () *)
 
-  let t, _ = Typecheck.(S.run {cs= []; gamma= []; alpha= []; delta= []} (synthesize expr)) in
+  let t, _ = Typecheck.run_synthesis expr  in
 
   let t' = normalize t in
 
-  print_endline (show_typ t) ;
+  print_endline ("Type of e:\n" ^(show_typ t)) ;
 
-  print_endline (show_typ t')
+  print_endline ("\n Normal Type of e:\n" ^(show_typ t'));
+  print_endline "\nStart Checking:\n";
+
+  pc (run_checking expr t') ~filter:true
+

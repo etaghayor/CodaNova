@@ -131,13 +131,13 @@ and ppf_qual ppf =
     | QQuant (quant, (x, s, e), q) ->
         pf ppf "(%a%a<=%s<%a. %a)" ppf_quant quant ppf_expr s x ppf_expr e
           ppf_qual q 
-    | QDelay v -> pf ppf "(Delay var name: %a)" ppf_expr v )
+    | QDelay v -> pf ppf "(Delay var name: %s)" v )
 
 and ppf_expr ppf : expr -> unit =
   Fmt.(
     function
-    | NonDet ->
-        string ppf "✧"
+    | NonDet v ->
+        pf ppf "✧[%s]" v
     | Assert (e1, e2) ->
         pf ppf "(assert (%a = %a))" ppf_expr e1 ppf_expr e2
     | Const c ->
@@ -253,7 +253,7 @@ and vars_qual : qual -> SS.t = function
 and vars_expr : expr -> SS.t = function
   | Const _ ->
       SS.empty
-  | NonDet ->
+  | NonDet _ ->
       SS.empty
   | CPLen | CPrime ->
       SS.empty
@@ -355,7 +355,7 @@ and subst_qual (x : string) (e : expr) (q : qual) : qual =
 and subst_expr (x : string) (ef : expr) (e : expr) : expr =
   let f = subst_expr x ef in
   match e with
-    | NonDet -> e
+    | NonDet _ -> e
     | Const _ ->
         e
     | CPrime ->

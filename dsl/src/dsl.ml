@@ -1,5 +1,6 @@
 open Ast
 open Core
+open Utils
 open Big_int_Z
 
 (* common basic types *)
@@ -185,7 +186,7 @@ let call2 f e1 e2 = call f [e1; e2]
 
 let call3 f e1 e2 e3 = call f [e1; e2; e3]
 
-let star = NonDet
+let star = NonDet (Fresh.gen "x_")
 
 let bnot e = Not e
 
