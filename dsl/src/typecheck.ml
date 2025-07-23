@@ -266,7 +266,7 @@ let rec synthesize (e : expr) : typ S.t =
         | LetIn (x, e1, e2) -> 
             let%bind t1 = synthesize e1 in
             let%bind t2 = with_binding (x, t1) (synthesize e2) in
-            check (subst_expr x e1 e2) t2 >> return (subst_typ x e1 t2)
+            return (subst_typ x e1 t2)
         | LamA (x, t1, e) ->
             let%bind t2 = with_binding (x, t1) (synthesize e) in
             return (tfun x t1 t2)
