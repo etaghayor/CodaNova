@@ -235,11 +235,14 @@ let rec synthesize (e : expr) : typ S.t =
               match List.Assoc.find g x ~equal:String.equal with
               | Some t -> (
                   print_endline ("Found var: " ^ x ^"\n");
-                  match t with
-                  | TFun _ ->
-                    return t
-                  | _ ->
-                    return (attach (nu ==. v x) t) )
+                  return t
+                  (* match t with
+                     | TFun _ ->
+                     return t
+                     | _ ->
+                     return (attach (nu ==. v x) t) *) 
+                  (*We don't really need to attach anything...*)
+                )
               | None ->
                 failwith ("[synthesize] No such variable: " ^ x)
                 (* let%bind g = get_gamma in
@@ -398,7 +401,7 @@ let rec synthesize (e : expr) : typ S.t =
             match descale t1 with
             | TArr te ->
               let%bind () = check e2 tint in
-              return (tarr_t_q_k te (nu ==. e) e2)
+              return (tarr_t_k te e2)
             | _ ->
               failwith "[synthesize] take: not an array" )
         | ArrayOp (Drop, [e1; e2]) -> (
@@ -406,14 +409,14 @@ let rec synthesize (e : expr) : typ S.t =
             match descale t1 with
             | TArr te ->
               let%bind () = check e2 tint in
-              return (tarr_t_q_k te (nu ==. e) (len e1 -. e2))
+              return (tarr_t_k te (len e1 -. e2))
             | _ ->
               failwith "[synthesize] drop: not an array" )
         | ArrayOp (Rev, [e']) -> (
             let%bind t1 = synthesize e' in
             match skeleton t1 with
             | TArr te ->
-              return (tarr_t_q_k te (nu ==. e) (len e'))
+              return (tarr_t_k te (len e'))
             | _ ->
               failwith "[synthesize] drop: not an array" )
         | ArrayOp (Cons, [e1; Const CNil]) ->
@@ -446,7 +449,7 @@ let rec synthesize (e : expr) : typ S.t =
               subtype te1' te2'
               >>= fun () ->
               subtype te1' te2'
-              >>= fun () -> return (tarr_t_q_k te1 (nu ==. e) (l1 +. l2))
+              >>= fun () -> return (tarr_t_k te1 (l1 +. l2))
             | _ ->
               failwith
                 (spf "[synthesize] Concat: t1=%s\tt2=%s" (show_typ t1)
@@ -533,7 +536,7 @@ and check (e : expr) (t : typ) : unit S.t =
         | Const CNil, nt -> (
             match nt with
             | TRef (TArr _, _) ->
-              subtype (attach (nu ==. cnil) (skeleton t)) nt
+              subtype (skeleton t) nt
             | _ ->
               failwith (spf "Expect CNil <= %s to be an array" (show_typ t)) )
         | NonDet v, nt -> 
@@ -563,8 +566,8 @@ and check (e : expr) (t : typ) : unit S.t =
             let%bind t1 = synthesize e1 in
             match normalize t1 with
             | TRef (TTuple ts, q) ->
-              let ts' =
-                List.mapi ts ~f:(fun i t -> attach (nu ==. tget e1 i) t)
+              let ts' = ts
+              (* List.mapi ts ~f:(fun i t -> attach (nu ==. tget e1 i) t) *)
               in
               let u = fresh "_u" in
               let q' =
