@@ -207,11 +207,11 @@ let rec synthesize (e : expr) : typ S.t =
           (check_cons (QImply (q1, q)) >> check_cons (QImply (q2, q)))
           >> return (tunit_dep q)
         | CPrime ->
-          return (refine_expr tint (nu =. CPrime))
+          return (triv tint)
         | CPLen ->
-          return (refine_expr tint (nu =. CPLen))
+          return (triv tint)
         | Const c ->
-          let r tb = refine_expr tb (nu =. e) in
+          let r tb = triv tb in
           let t =
             match c with
             | CF _ ->
@@ -289,20 +289,20 @@ let rec synthesize (e : expr) : typ S.t =
               failwith
                 (spf "[synthesize] App: not a function: %s" (show_typ t1)) )
         | Binop (BF, Pow, e1, e2) ->
-          check e1 tf >> check e2 tnat >> return (refine_expr tf (nu =. e))
+          check e1 tf >> check e2 tnat >> return (triv tf)
         | Binop (BF, _, e1, e2) ->
-          check e1 tf >> check e2 tf >> return (refine_expr tf (nu =. e))
+          check e1 tf >> check e2 tf >> return (triv tf)
         | Binop (BZ, _, e1, e2) ->
           check e1 tint >> check e2 tint
-          >> return (refine_expr tint (nu =. e))
+          >> return (triv tint)
         | Binop (BNat, _, e1, e2) ->
           check e1 tint >> check e2 tint
-          >> return (refine_expr tint (nu =. e))
+          >> return (triv tint)
         | Boolop (_, e1, e2) ->
           check e1 tbool >> check e2 tbool
-          >> return (refine_expr tbool (nu =. e))
+          >> return (triv tbool)
         | Comp (op, e1, e2) -> (
-            let res = refine_expr tbool (nu =. e) in
+            let res = triv tbool in
             match op with
             | Leq | Lt ->
               check e1 tint >> check e2 tint >> return res
@@ -316,7 +316,7 @@ let rec synthesize (e : expr) : typ S.t =
                     ( "[synthesize] Comp: Unequal types " ^ show_typ s1
                       ^ show_typ s2 ) ) )
         | Not e' ->
-          check e' tbool >> return (refine_expr tbool (nu =. e))
+          check e' tbool >> return (triv tbool)
         | Call (c_name, args) -> (
             let%bind d = get_delta in
             match List.Assoc.find d c_name ~equal:String.equal with
@@ -390,7 +390,7 @@ let rec synthesize (e : expr) : typ S.t =
             | TArr t ->
               (* FIXME: check index in range *)
               ignore e2 ;
-              return (refine t (QExpr (nu =. e)))
+              return (triv t)
             | _ ->
               failwith "[synthesize] get: not an array" )
         | ArrayOp (Take, [e1; e2]) -> (
@@ -493,11 +493,11 @@ let rec synthesize (e : expr) : typ S.t =
         | Fn (ToUZ, [e']) ->
           print_endline (spf "[synthesize] ToUZ:  %s" (show_expr e')) ;
           let%bind () = check e' tf in
-          return (refine_expr tint (nu =. e))
+          return (triv tint )
         | Fn (NatToF, [e']) ->
           print_endline (spf "[synthesize] NatToF:  %s" (show_expr e')) ;
           let%bind () = check e' tnat in
-          return (refine_expr tf (nu =. e))
+          return (triv tf)
         | _ ->
           failwith
             (spf "Synthesis unavailable for expression %s" (show_expr e))
@@ -550,7 +550,7 @@ and check (e : expr) (t : typ) : unit S.t =
           check_cons (qimply QTrue q')
         | ArrayOp (Cons, [e1; e2]), TRef (TArr te, q) -> (*TODO: work with q*)
           let%bind () = check e1 te and () = check e2 (tarr te) in
-          subtype (refine_expr (tarr te) (nu =. e)) nt
+          subtype (triv (tarr te)) nt
         | Lam (x, body), TFun (y, t1, t2) ->
           with_binding (x, t1) (check body (subst_typ y (v x) t2))
         | LamA (x, t, body), TFun (y, t1, t2) ->
