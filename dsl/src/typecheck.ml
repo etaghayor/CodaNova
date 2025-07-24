@@ -509,8 +509,6 @@ let rec synthesize (e : expr) : typ S.t =
       >>| fun t ->
       print_endline
         (spf "[synthesize] type for %s >>> %s\n" (show_expr e) (show_typ t)) ;
-
-
       t ) )
 
 and synthesize_app (t : typ) (es : expr list) : typ S.t =
@@ -539,10 +537,17 @@ and check (e : expr) (t : typ) : unit S.t =
               subtype (skeleton t) nt
             | _ ->
               failwith (spf "Expect CNil <= %s to be an array" (show_typ t)) )
-        | NonDet v, nt -> 
-          print_endline (" Tell me you see me\n" ^ v);
-          let%bind t1 = synthesize e in
-          subtype nt t1
+        (*
+        (* adding the nondet case -E*)
+        | NonDet v, TRef (tf, QDelay qd) when String.(v = qd) -> (
+            print_endline (" Tell me you see me at star\n" ^ v);
+            check_cons (qimply QTrue (QDelay qd))
+          )
+        (* adding the var case -E*)
+        | Var v, TRef(tf, QDelay qd) -> (
+            print_endline (" Tell me you see me at nondet var\n" ^ v);
+            check_cons (qimply QTrue (QDelay qd))
+          ) *)
         | TMake es, TRef (TTuple ts, q) ->
           iterM (List.zip_exn es ts) ~f:(uncurry check)
           >>= fun () ->
@@ -579,36 +584,12 @@ and check (e : expr) (t : typ) : unit S.t =
               with_bindings ((u, tu) :: List.zip_exn xs ts') (check e2 t)
             | _ ->
               failwith "[check] match: not a tuple"
-              (* | DPDestr (e1, xs, e2), t2 -> *)
-              (* synthesize e1 >>= fun t1 ->
-                 let ts, a' =
-                   match t1 with
-                   | TDProd (ts, ys, q) ->
-                       let q' =
-                         List.fold_right
-                           (fun (x, y) q -> subst_qual x (v y) q)
-                           (List.combine xs ys) q
-                       in
-                       print_endline
-                         (spf "[check] DPDestr: subst'ed q: %s" (show_qual q')) ;
-                       (ts, [q'])
-                   | TTuple ts ->
-                       (ts, [])
-                   | _ ->
-                       failwith "not a product"
-                 in
-                 if List.length ts = List.length xs then
-                 with_bindings (List.combine xs ts) (
-                   check d (List.combine xs ts) (a @ a') e2 t2 in
-                   cs1 @ cs2
-                 else
-                   failwith (spf "DPDestr: xs and ts have different lengths") *) )
+          )
         | Push e, _ -> (
             let t', q = get_tq t in
             match t' with
             | TArr te ->
-              (* push e <== Array<{ te | qe(v) }> if *)
-              (* e <== {Array<te> | forall 0<= i0 < length nu. qe(v[i]) *)
+
               let te', qe = get_tq te in
               check e
                 (refine (tarr te')
@@ -618,8 +599,13 @@ and check (e : expr) (t : typ) : unit S.t =
             | _ ->
               failwith "[check] Push: expect array type" )
         | _ ->
+          print_endline "[check] cheking uncovered match cases including var";
           let%bind t' = synthesize e in
-          subtype t' t
+          print_endline ("the uncovered case's synthesized type: " ^ (show_typ t') ^"\n");
+          match t' with
+          | TRef (tf, QDelay v) -> subtype (triv tf) t'
+             (* let _ = subtype (triv tf) t' in subtype t' t *)
+          | _ -> subtype t' t
       in
       match t with
       | TTuple [t'] -> (
