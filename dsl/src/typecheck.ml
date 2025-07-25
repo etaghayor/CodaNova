@@ -195,6 +195,7 @@ let rec synthesize (e : expr) : typ S.t =
       print_endline (spf "[synthesize] Synthesizing type for %s" (show_expr e)) ;
       let f = function
         | NonDet s ->
+          check_cons (QDelay s) >>
           return @@ refine tf @@ QDelay s (*use the same identifier for inside the refinement*)
         | Assert (e1, e2) ->
           let%bind t1 = synthesize e1 and t2 = synthesize e2 in
@@ -599,10 +600,7 @@ and check (e : expr) (t : typ) : unit S.t =
           print_endline "[check] cheking uncovered match cases including var";
           let%bind t' = synthesize e in
           print_endline ("the uncovered case's synthesized type: " ^ (show_typ t') ^"\n");
-          match t' with
-          | TRef (tf, QDelay v) -> subtype (triv tf) t'
-             (* let _ = subtype (triv tf) t' in subtype t' t *)
-          | _ -> subtype t' t
+          subtype t' t
       in
       match t with
       | TTuple [t'] -> (
