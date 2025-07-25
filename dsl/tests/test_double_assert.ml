@@ -39,9 +39,6 @@ let () =
       )
     
   in
-(*   
-  let _ = Typecheck.(S.run {cs= []; gamma=[];alpha= []; delta= []}
-              (check expr2 (refine_expr tf (eq nu f1)))) in () *)
 
   let t, _ = Typecheck.run_synthesis expr  in
 
@@ -50,9 +47,3 @@ let () =
   print_endline ("Type of e:\n" ^(show_typ t)) ;
 
   print_endline ("\n Normal Type of e:\n" ^(show_typ t'))
-  
-  ;
-  print_endline "\nStart Checking:\n";
-
-  pc (run_checking expr t') ~filter:true
-
