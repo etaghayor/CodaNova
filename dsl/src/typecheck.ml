@@ -63,13 +63,28 @@ let is_really_non_trivial = function
 let filter_nontrivial cs = List.filter cs ~f:is_non_trivial
 
 let pc (cs : cons list) ?(filter = false) : unit =
-  print_endline "Here is the list of all the constraints:\n++++++++++";
+  print_endline "Here is the list of all the states and constraints:\n++++++++++";
   cs
   |> (if filter then filter_nontrivial else Fn.id)
   |> List.map ~f:show_cons 
   |> List.iteri ~f:(fun i c -> Printf.printf "\nNumber %d.\n%s\n" (i+1) c);
   (* |> String.concat ~sep:"\n\n" |> print_endline; *)
   print_endline "\n++++++++++\n That was it!\n"
+
+
+let show_constraint = function
+  | CheckCons (_,_, q) -> (show_qual q)
+
+
+let ppc (cs : cons list) ?(filter = false) : unit =
+  print_endline "Here is the list of all the constraints (only):\n++++++++++";
+  cs
+  |> (if filter then filter_nontrivial else Fn.id)
+  |> List.map ~f:show_constraint
+  |> List.iteri ~f:(fun i c -> Printf.printf "\nNumber %d.\n%s\n" (i+1) c);
+  (* |> String.concat ~sep:"\n\n" |> print_endline; *)
+  print_endline "\n++++++++++\n That was it!\n"
+
 
 let substs_qual (q : qual) (xe : (string * expr) list) : qual =
   List.fold_left ~f:(fun q (x, e) -> subst_qual x e q) ~init:q xe
@@ -136,7 +151,7 @@ let add_cons cons =
 
   S.(modify (fun st -> 
       let cs = st.cs @ [cons] in
-      pc cs ~filter:true;
+      (* pc cs ~filter:true; *)
       {st with cs = cs}
 
     ))
@@ -604,7 +619,7 @@ and check (e : expr) (t : typ) : unit S.t =
           print_endline ("the uncovered case's synthesized type: " ^ (show_typ t') ^"\n");
           match t' with
           | TRef (tf, QDelay v) -> subtype (triv tf) t'
-             (* let _ = subtype (triv tf) t' in subtype t' t *)
+          (* let _ = subtype (triv tf) t' in subtype t' t *)
           | _ -> subtype t' t
       in
       match t with
@@ -635,7 +650,7 @@ let run_synthesis ?(gamma = []) e =
         run {delta= []; gamma; alpha= []; cs= []} (synthesize e)
       in
       print_endline "FINAL CONS!\n";
-      pc cs ~filter:true;
+      ppc cs ~filter:true;
       (t, cs) ) )
 
 let run_checking ?(gamma = []) e t =
