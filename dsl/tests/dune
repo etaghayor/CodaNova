@@ -9,14 +9,19 @@
  (modules test_utils))
 
 (executable
- (name test_app_assert)
+ (name test_assert_app)
  (libraries zarith lib typecheck)
- (modules test_app_assert))
+ (modules test_assert_app))
 
 (executable
- (name test_layered_assert)
+ (name test_shadowing)
  (libraries zarith lib typecheck)
- (modules test_layered_assert))
+ (modules test_shadowing))
+
+(executable
+ (name test_nested_assert)
+ (libraries zarith lib typecheck)
+ (modules test_nested_assert))
 
 (executable
  (name test_double_assert)
@@ -27,3 +32,8 @@
  (name test_simple)
  (libraries zarith lib typecheck)
  (modules test_simple))
+
+(executable
+ (name test_leq_delay)
+ (libraries zarith lib typecheck)
+ (modules test_leq_delay))

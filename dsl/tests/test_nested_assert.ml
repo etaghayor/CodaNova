@@ -16,13 +16,13 @@ let () =
   let subexpr = 
     LetIn ("a", star, 
            App (
-             LamA ("x", tf,  v "a"),
+             LamA ("x", tf,  v "x"),
              LetIn("_", Assert (v "a", f2), fadd (v "a") f2)   
            )
           )
   in
   let expr = 
-    Assert (subexpr, fn 3)
+    Assert (subexpr, fn 4)
     (* Comp( Eq,
           subexpr,
           fn 3)     *)
