@@ -37,3 +37,13 @@
  (name test_leq_delay)
  (libraries zarith lib typecheck)
  (modules test_leq_delay))
+
+(executable
+ (name test_input_delay)
+ (libraries zarith lib typecheck)
+ (modules test_input_delay))
+
+(executable
+ (name test_output_delay)
+ (libraries zarith lib typecheck)
+ (modules test_output_delay))

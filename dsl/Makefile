@@ -19,6 +19,12 @@ test-simple:
 test-leq-delay:
 	dune exec _build/default/tests/test_leq_delay.exe
 
+test-input-delay:
+	dune exec _build/default/tests/test_input_delay.exe
+
+test-output-delay:
+	dune exec _build/default/tests/test_output_delay.exe
+
 
 Makefile:
 	@echo make $@
