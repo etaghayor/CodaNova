@@ -220,7 +220,8 @@ let rec synthesize (e : expr) : typ S.t =
           subtype (skeleton t1) (skeleton t2)
           >> subtype (skeleton t2) (skeleton t1)
           >> let q = QExpr (e1 =. e2) in
-          (check_cons (QImply (q1, q)) >> check_cons (QImply (q2, q)))
+          check_cons q
+          (*(check_cons (QImply (q1, q)) >> check_cons (QImply (q2, q)))*)
           >> return (tunit_dep q)
         | CPrime ->
           return (refine_expr tint (nu =. CPrime))
