@@ -14,6 +14,12 @@
  (modules test_assert_app))
 
 (executable
+ (name test_assert_app_2)
+ (libraries zarith lib typecheck)
+ (modules test_assert_app_2))
+
+
+(executable
  (name test_shadowing)
  (libraries zarith lib typecheck)
  (modules test_shadowing))
@@ -32,6 +38,21 @@
  (name test_simple)
  (libraries zarith lib typecheck)
  (modules test_simple))
+
+(executable
+ (name test_circuit_simple)
+ (libraries zarith lib typecheck)
+ (modules test_circuit_simple))
+
+(executable
+ (name test_circuit_nondet_arg)
+ (libraries zarith lib typecheck)
+ (modules test_circuit_nondet_arg))
+
+(executable
+ (name test_circuit_factors)
+ (libraries zarith lib typecheck)
+ (modules test_circuit_factors))
 
 (executable
  (name test_leq_delay)

@@ -8,7 +8,7 @@ open Dsl
 let () =
   (* let a = * in
      let res = (λx:{ v:F | v > 0}.x+1 ) a in
-     assert (res > 2)
+     assert (res = 4)
   *)
   let expr = 
     LetIn ("a", star, 
