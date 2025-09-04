@@ -35,9 +35,19 @@
  (modules test_double_assert))
 
 (executable
+ (name test_double_assert_hard)
+ (libraries zarith lib typecheck)
+ (modules test_double_assert_hard))
+
+(executable
  (name test_simple)
  (libraries zarith lib typecheck)
  (modules test_simple))
+
+ (executable
+ (name test_simple_reuse)
+ (libraries zarith lib typecheck)
+ (modules test_simple_reuse))
 
 (executable
  (name test_circuit_simple)

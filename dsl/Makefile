@@ -19,6 +19,9 @@ test-circuit-factors:
 test-double-assert:
 	dune exec _build/default/tests/test_double_assert.exe
 	
+test-double-assert-hard:
+	dune exec _build/default/tests/test_double_assert_hard.exe
+	
 test-leq-delay:
 	dune exec _build/default/tests/test_leq_delay.exe
 
@@ -27,6 +30,9 @@ test-nested-assert:
 
 test-simple:
 	dune exec _build/default/tests/test_simple.exe
+
+test-simple-reuse:
+	dune exec _build/default/tests/test_simple_reuse.exe
 
 test-shadowing:
 	dune exec _build/default/tests/test_shadowing.exe

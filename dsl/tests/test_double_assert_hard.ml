@@ -8,9 +8,9 @@ open Dsl
 let () =
   (* let a = * in
     (λx:{ v:F | True}.
-      assert (a=1) in
+      assert (x = 1) in
       x)
-    (assert (a=2) in
+    (assert (a = 2) in
       a)
     *)
   (*TODO: Change "_"*)
@@ -18,7 +18,7 @@ let () =
     LetIn ("a", star, 
       App (
         LamA ("x", tf, 
-          LetIn("b", Assert (Var "a", f1), Var "x")
+          LetIn("b", Assert (Var "x", f1), Var "x")
         ),
         LetIn("c", Assert (Var "a", f2), Var "a")   
       )
