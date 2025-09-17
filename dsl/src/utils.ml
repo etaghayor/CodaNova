@@ -20,6 +20,6 @@ module Fresh = struct
 
   let gen prefix =
     let id = !counter in
-    incr counter;
+    counter:= id +1 ;
     prefix ^ string_of_int id
 end

@@ -15,7 +15,7 @@ let () =
     *)
   (*TODO: Change "_"*)
   let expr = 
-    LetIn ("a", star, 
+    LetIn ("a", star (), 
       App (
         LamA ("x", tf, 
           LetIn("b", Assert (Var "x", f1), Var "x")

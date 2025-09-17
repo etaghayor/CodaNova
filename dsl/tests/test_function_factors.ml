@@ -6,18 +6,25 @@ open Typecheck
 open Dsl
 
 let () =
-  (* let a = * in
-     assert (a = 1) in
-     assert (a = 2)
-  *)
+  (* λx: {v:F| True}.
+                    let y = * in
+                    let z = * in
+                    assert (y.z = x) in
+                    (y, z)
+          *)
   let expr = 
-    LetIn ("a", star (), 
-           LetIn("_",
-                 assert_eq (v "a") f1,
-                 assert_eq (v "a") f2
-                )
-          )
-  in
+    LamA ("x", tf, 
+          LetIn ("y", star (),
+                 LetIn("z", star (),
+                       LetIn ("_",
+                              assert_eq (fmul (v "y") (v "z")) (v "x"),
+                              pair (v "y") (v "z")
+                             )))) in
+  (* let circ = Circuit {name = "c";
+                      inputs = [("x", tf)];
+                      outputs = [("y", tf); ("z", tf)];
+                      dep = None;
+                      body = expr} in *)
 
   (* Utils: *)
   (* let x = e1 in e2 EQUAL

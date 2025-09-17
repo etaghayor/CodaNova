@@ -60,6 +60,11 @@
  (modules test_circuit_nondet_arg))
 
 (executable
+ (name test_function_factors)
+ (libraries zarith lib typecheck)
+ (modules test_function_factors))
+
+(executable
  (name test_circuit_factors)
  (libraries zarith lib typecheck)
  (modules test_circuit_factors))

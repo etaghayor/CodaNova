@@ -14,15 +14,15 @@ let () =
       4  
   *)
   let subexpr = 
-    LetIn ("a", star, 
+    LetIn ("a", star (), 
            App (
              LamA ("x", tf,  v "x"),
-             LetIn("_", Assert (v "a", f2), fadd (v "a") f2)   
+             LetIn("_", assert_eq (v "a") f2, fadd (v "a") f2)   
            )
           )
   in
   let expr = 
-    Assert (subexpr, fn 4)
+    assert_eq subexpr (fn 4)
     (* Comp( Eq,
           subexpr,
           fn 3)     *)

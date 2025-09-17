@@ -16,7 +16,7 @@ let () =
   *)
   let expr = 
     LetIn("a",
-          star,
+          star (),
           Assert(
             App(
               LamA("x", tf, v "x" +% v "a"),

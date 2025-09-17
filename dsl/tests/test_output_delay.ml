@@ -12,7 +12,7 @@ let () =
 
   *)
   let expr = 
-    LetIn ("a", star, 
+    LetIn ("a", star (), 
            LetIn("_", assert_eq (v "a") f0,
                  lt
                    (App (

@@ -21,11 +21,11 @@ let () =
   *)
   let expr = 
     LetIn("a",
-          star,
+          star (),
           Assert(
             App(
               LamA("x", tf, 
-                   LetIn ("a", star, v "x" +% v "a")),
+                   LetIn ("a", star (), v "x" +% v "a")),
               f2
             ),
             App(

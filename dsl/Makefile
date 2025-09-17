@@ -16,6 +16,9 @@ test-circuit-nondet-arg:
 test-circuit-factors:
 	dune exec _build/default/tests/test_circuit_factors.exe
 
+test-function-factors:
+	dune exec _build/default/tests/test_function_factors.exe
+
 test-double-assert:
 	dune exec _build/default/tests/test_double_assert.exe
 	

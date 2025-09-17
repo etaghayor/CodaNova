@@ -8,11 +8,14 @@ open Dsl
 let () =
   (* let a = * in
      let x = a + 1 in
-     assert (x = 2)*)
+     assert (x = 2) in
+     assert (a = 3) *)
   let expr = 
-    LetIn ("a", star, 
+    LetIn ("a", star (), 
            LetIn ("x", fadd (v "a") f1,
-                  assert_eq (v "x") f2
+                  LetIn ("_", assert_eq (v "x") f2,
+                         assert_eq (v "a") (fn 3)
+                        )
                  )
           )
   in
@@ -28,7 +31,7 @@ let () =
   (* 
   let init =
     {cs= []; gamma=[];alpha= []; delta= []} in *)
-    
+
   let t, _ = Typecheck.run_synthesis expr in
 
   let t' = normalize t in
